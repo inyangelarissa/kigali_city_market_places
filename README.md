@@ -1,46 +1,46 @@
-# 🏙️ Kigali Directory
+#  Kigali Directory
 
 A Flutter-based mobile application for discovering and navigating businesses, services, and places across Kigali, Rwanda. Built with Firebase as the backend and Riverpod for reactive state management.
 
 ---
 
-## 📱 Features
+## Features
 
-### 🔐 Authentication
+### Authentication
 - Email and password registration and login via Firebase Authentication
 - Persistent login sessions across app restarts using Firebase's built-in token persistence
 - Auth-aware routing through `AuthWrapper` — unauthenticated users are redirected to the login screen automatically
 
-### 🗂️ Category Browsing
+### Category Browsing
 - Browse places and businesses across predefined categories: **Hospital, Police Station, Library, Restaurant, Café, Park, Tourist Attraction, Hotel, Bank, Pharmacy, Shopping Mall, School**, and more
 - Filter the directory in real time by selecting a category chip on the home screen
 - "All" filter shows the complete listings across every category
 
-### 🔍 Search
+###  Search
 - Full-text search bar for finding places and businesses by name or keyword
 - Search results update reactively as the user types
 
-### 📋 Listings
+### Listings
 - View detailed information for each listing including name, category, description, and location
 - Each listing card links to external resources (website, phone, directions) via `url_launcher`
 
-### 📌 My Listings
+### My Listings
 - Authenticated users can create, edit, and delete their own listings
 - Listings are scoped to the owner's UID, ensuring users can only manage their own content
 
-### 🗺️ Map View
+### Map View
 - Interactive map powered by `flutter_map` (OpenStreetMap tiles) and `latlong2`
 - View all listed places as map markers
 - Device location detection via `geolocator` to center the map on the user's current position
 
-### 🌙 Dark Mode
+### Dark Mode
 - Full light and dark theme support using a custom `AppTheme`
 - Theme preference persisted across sessions using `shared_preferences`
 - Toggle available in the Settings tab
 
 ---
 
-## 🗄️ Firestore Database Structure
+## Firestore Database Structure
 
 The app uses Cloud Firestore with the following top-level collections:
 
@@ -96,7 +96,7 @@ service cloud.firestore {
 
 ---
 
-## ⚙️ State Management — Riverpod
+## State Management — Riverpod
 
 The app uses **Flutter Riverpod (v2)** for all state management. The entire widget tree is wrapped in a `ProviderScope` in `main.dart`, making all providers available globally.
 
@@ -141,7 +141,7 @@ Firestore streams are consumed via `StreamProvider`, so any change in the databa
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 | Layer | Technology |
 |---|---|
@@ -156,7 +156,7 @@ Firestore streams are consumed via `StreamProvider`, so any change in the databa
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 - Flutter SDK `>=3.0.0`
@@ -180,11 +180,11 @@ flutterfire configure
 flutter run
 ```
 
-> ⚠️ Make sure your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) are placed in the correct directories after running `flutterfire configure`.
+>  Make sure your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) are placed in the correct directories after running `flutterfire configure`.
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 lib/
@@ -211,6 +211,6 @@ lib/
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License. See `LICENSE` for details.
