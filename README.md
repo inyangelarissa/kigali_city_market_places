@@ -141,21 +141,6 @@ Firestore streams are consumed via `StreamProvider`, so any change in the databa
 
 ---
 
-## Tech Stack
-
-| Layer | Technology |
-|---|---|
-| Framework | Flutter 3 (Dart ≥ 3.0) |
-| Backend | Firebase (Auth + Firestore) |
-| State Management | Flutter Riverpod v2 |
-| Maps | flutter_map + OpenStreetMap |
-| Geolocation | geolocator |
-| Fonts | google_fonts |
-| Theme Persistence | shared_preferences |
-| External Links | url_launcher |
-
----
-
 ## Getting Started
 
 ### Prerequisites
