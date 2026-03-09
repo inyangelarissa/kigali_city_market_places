@@ -1,1 +1,31 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"kigali-city-directory-a10cd","appId":"1:367908416154:android:b6e98e8db3852a9b628d23","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"kigali-city-directory-a10cd","configurations":{"android":"1:367908416154:android:b6e98e8db3852a9b628d23","ios":"1:367908416154:ios:ebd3b4dbc03d471d628d23","macos":"1:367908416154:ios:ebd3b4dbc03d471d628d23","web":"1:367908416154:web:fab3f78d93623e1b628d23","windows":"1:367908416154:web:75df7225e599af08628d23"}}}}}}
+{
+  "firestore": {
+    "database": "(default)",
+    "location": "eur3",
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "kigali-city-directory-a10cd",
+          "appId": "1:367908416154:android:b6e98e8db3852a9b628d23",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "kigali-city-directory-a10cd",
+          "configurations": {
+            "android": "1:367908416154:android:b6e98e8db3852a9b628d23",
+            "ios": "1:367908416154:ios:ebd3b4dbc03d471d628d23",
+            "macos": "1:367908416154:ios:ebd3b4dbc03d471d628d23",
+            "web": "1:367908416154:web:fab3f78d93623e1b628d23",
+            "windows": "1:367908416154:web:75df7225e599af08628d23"
+          }
+        }
+      }
+    }
+  }
+}

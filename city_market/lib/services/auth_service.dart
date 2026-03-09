@@ -1,63 +1,65 @@
-// lib/services/auth_service.dart
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/user_model.dart';
+import 'dart:async';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart' as firebase_auth;
+
+final authServiceProvider = Provider<AuthService>((ref) => AuthService());
+
+final authStateChangesProvider = StreamProvider<firebase_auth.User?>((ref) {
+  return ref.watch(authServiceProvider).authStateChanges;
+});
 
 class AuthService {
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final firebase_auth.FirebaseAuth _auth = firebase_auth.FirebaseAuth.instance;
+  
+  // Stream for auth state changes
+  Stream<firebase_auth.User?> get authStateChanges => _auth.authStateChanges();
 
-  // Stream of auth state changes
-  Stream<User?> get authStateChanges => _auth.authStateChanges();
-
-  // Current user
-  User? get currentUser => _auth.currentUser;
+  // Configure action code settings for email verification
+  firebase_auth.ActionCodeSettings get _actionCodeSettings {
+    return firebase_auth.ActionCodeSettings(
+      url: 'https://kigali-city-directory-a10cd.firebaseapp.com',
+      handleCodeInApp: true,
+      androidPackageName: 'com.example.city_market',
+      androidInstallApp: true,
+      androidMinimumVersion: '21',
+    );
+  }
 
   // Sign up with email and password
-  Future<UserModel?> signUp({
-    required String email,
-    required String password,
-    required String displayName,
-  }) async {
+  Future<firebase_auth.User?> signUpWithEmailAndPassword(String email, String password) async {
     try {
       final credential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-
-      final user = credential.user;
-      if (user == null) return null;
-
-      // Update display name
-      await user.updateDisplayName(displayName);
-
-      // Send email verification
-      await user.sendEmailVerification();
-
-      // Create user profile in Firestore
-      final userModel = UserModel(
-        uid: user.uid,
-        email: email,
-        displayName: displayName,
-        createdAt: DateTime.now(),
-      );
-
-      await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .set(userModel.toMap());
-
-      return userModel;
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+      
+      // Send verification email with ActionCodeSettings
+      if (credential.user != null) {
+        try {
+          await credential.user!.sendEmailVerification(_actionCodeSettings);
+          debugPrint('✅ Verification email sent to: ${credential.user!.email}');
+        } catch (e) {
+          debugPrint('❌ Failed to send verification email: $e');
+          // Try again without ActionCodeSettings
+          try {
+            await credential.user!.sendEmailVerification();
+            debugPrint('✅ Verification email sent (fallback) to: ${credential.user!.email}');
+          } catch (e2) {
+            debugPrint('❌ Fallback verification email also failed: $e2');
+            throw 'Account created but verification email failed. Please use "Resend" later.';
+          }
+        }
+      }
+      
+      return credential.user;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw _getAuthErrorMessage(e.code);
     }
   }
 
   // Sign in with email and password
-  Future<UserModel?> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<firebase_auth.User?> signInWithEmailAndPassword(String email, String password) async {
     try {
       final credential = await _auth.signInWithEmailAndPassword(
         email: email,
@@ -65,35 +67,57 @@ class AuthService {
       );
 
       final user = credential.user;
-      if (user == null) return null;
-
-      // Check email verification
-      if (!user.emailVerified) {
-        throw Exception('Please verify your email before signing in. Check your inbox.');
+      if (user != null && !user.emailVerified) {
+        // Resend verification email
+        try {
+          await user.sendEmailVerification(_actionCodeSettings);
+          debugPrint('✅ Verification email resent to: ${user.email}');
+        } catch (e) {
+          debugPrint('❌ Failed to resend verification email: $e');
+          // Try fallback
+          try {
+            await user.sendEmailVerification();
+            debugPrint('✅ Verification email resent (fallback) to: ${user.email}');
+          } catch (e2) {
+            debugPrint('❌ Fallback verification email failed: $e2');
+          }
+        }
+        
+        await _auth.signOut();
+        throw 'Please verify your email first. Check your inbox (and spam folder) for the verification link.';
       }
 
-      // Get or create user profile
-      return await _getUserProfile(user.uid, email, user.displayName ?? '');
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+      return user;
+    } on firebase_auth.FirebaseAuthException catch (e) {
+      throw _getAuthErrorMessage(e.code);
     }
   }
 
-  // Get user profile from Firestore
-  Future<UserModel?> _getUserProfile(String uid, String email, String displayName) async {
-    final doc = await _firestore.collection('users').doc(uid).get();
-    if (doc.exists) {
-      return UserModel.fromFirestore(doc);
+  String _getAuthErrorMessage(String code) {
+    switch (code) {
+      case 'email-already-in-use':
+        return 'This email is already registered';
+      case 'invalid-email':
+        return 'Invalid email address';
+      case 'operation-not-allowed':
+        return 'Operation not allowed';
+      case 'weak-password':
+        return 'Password is too weak';
+      case 'user-disabled':
+        return 'This account has been disabled';
+      case 'user-not-found':
+        return 'No account found with this email';
+      case 'wrong-password':
+        return 'Incorrect password';
+      case 'invalid-credential':
+        return 'Invalid email or password';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later';
+      case 'network-request-failed':
+        return 'Network error. Check your connection';
+      default:
+        return 'Authentication failed. Please try again';
     }
-    // Create profile if doesn't exist
-    final userModel = UserModel(
-      uid: uid,
-      email: email,
-      displayName: displayName,
-      createdAt: DateTime.now(),
-    );
-    await _firestore.collection('users').doc(uid).set(userModel.toMap());
-    return userModel;
   }
 
   // Sign out
@@ -101,50 +125,47 @@ class AuthService {
     await _auth.signOut();
   }
 
+  // Get current user
+  firebase_auth.User? get currentUser => _auth.currentUser;
+
   // Resend verification email
-  Future<void> resendVerificationEmail() async {
-    await _auth.currentUser?.sendEmailVerification();
-  }
-
-  // Reset password
-  Future<void> resetPassword(String email) async {
-    try {
-      await _auth.sendPasswordResetEmail(email: email);
-    } on FirebaseAuthException catch (e) {
-      throw _handleAuthException(e);
+  Future<void> sendEmailVerification() async {
+    final user = _auth.currentUser;
+    if (user != null && !user.emailVerified) {
+      try {
+        await user.sendEmailVerification(_actionCodeSettings);
+        debugPrint('✅ Verification email sent to: ${user.email}');
+      } catch (e) {
+        debugPrint('❌ Error sending verification email: $e');
+        // Fallback without ActionCodeSettings
+        try {
+          await user.sendEmailVerification();
+          debugPrint('✅ Verification email sent (fallback) to: ${user.email}');
+        } catch (e2) {
+          debugPrint('❌ Fallback also failed: $e2');
+          rethrow;
+        }
+      }
+    } else if (user == null) {
+      debugPrint('❌ No user logged in');
+      throw 'No user is currently logged in';
+    } else {
+      debugPrint('ℹ️ Email already verified');
     }
   }
 
-  // Get current user profile
-  Future<UserModel?> getCurrentUserProfile() async {
-    final user = currentUser;
-    if (user == null) return null;
-    return await _getUserProfile(user.uid, user.email ?? '', user.displayName ?? '');
+  Future<bool> reloadAndCheckEmailVerified() async {
+    final user = _auth.currentUser;
+    if (user == null) return false;
+    await user.reload();
+    return _auth.currentUser?.emailVerified ?? false;
   }
 
-  // Update user profile
-  Future<void> updateUserProfile(String uid, Map<String, dynamic> data) async {
-    await _firestore.collection('users').doc(uid).update(data);
+  void resetSessionTimer() {
+    // Session management can be added here if needed
   }
 
-  String _handleAuthException(FirebaseAuthException e) {
-    switch (e.code) {
-      case 'weak-password':
-        return 'Password must be at least 6 characters.';
-      case 'email-already-in-use':
-        return 'An account already exists with this email.';
-      case 'user-not-found':
-        return 'No account found with this email.';
-      case 'wrong-password':
-        return 'Incorrect password. Please try again.';
-      case 'invalid-email':
-        return 'Please enter a valid email address.';
-      case 'user-disabled':
-        return 'This account has been disabled.';
-      case 'too-many-requests':
-        return 'Too many attempts. Please try again later.';
-      default:
-        return e.message ?? 'Authentication failed. Please try again.';
-    }
+  void dispose() {
+    // Cleanup if needed
   }
 }
