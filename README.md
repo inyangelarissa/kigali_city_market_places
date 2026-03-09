@@ -1,4 +1,4 @@
-#  Kigali Directory
+#  Kigali City Directory
 
 A Flutter-based mobile application for discovering and navigating businesses, services, and places across Kigali, Rwanda. Built with Firebase as the backend and Riverpod for reactive state management.
 
