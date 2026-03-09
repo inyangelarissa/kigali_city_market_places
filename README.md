@@ -167,8 +167,8 @@ Firestore streams are consumed via `StreamProvider`, so any change in the databa
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/your-username/kigali-directory.git
-cd kigali-directory
+git clone https://github.com/inyangelarissa/kigali_city_market_places.git
+cd city_market
 
 # 2. Install dependencies
 flutter pub get
@@ -179,8 +179,6 @@ flutterfire configure
 # 4. Run the app
 flutter run
 ```
-
->  Make sure your `google-services.json` (Android) and `GoogleService-Info.plist` (iOS) are placed in the correct directories after running `flutterfire configure`.
 
 ---
 
@@ -211,6 +209,3 @@ lib/
 
 ---
 
-## License
-
-This project is licensed under the MIT License. See `LICENSE` for details.
